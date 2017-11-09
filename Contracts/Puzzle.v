@@ -157,7 +157,7 @@ rewrite /is_locked/= in Hl. rewrite Hl in pf=>{Hl}.
 by case: G=>/=;[|case=>//]=>Z; subst ts; simpl in pf;
    rewrite?/input_filter1 /input_filter2 andbC/= in pf.
 Qed.
-  
+
 (* TODO: Think of more interesting temporal properties *)
 
 End PuzzleInvariants.

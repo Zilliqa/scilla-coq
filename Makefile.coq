@@ -115,6 +115,7 @@ VFILES:=Heaps/coding.v\
   Heaps/unionmap.v\
   Libs/bits.v\
   Core/Automata.v\
+  Core/Automata2.v\
   Contracts/Puzzle.v
 
 ifneq ($(filter-out archclean clean cleanall printenv,$(MAKECMDGOALS)),)

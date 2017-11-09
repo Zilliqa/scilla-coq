@@ -13,5 +13,6 @@ Heaps/spcm.v
 Heaps/unionmap.v
 Libs/bits.v
 Core/Automata.v
+Core/Automata2.v
 Contracts/Puzzle.v
 

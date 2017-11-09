@@ -12,8 +12,6 @@ Definition DWORDorBYTE (d: bool) :=
 
 Require Import Recdef.
 
-Print odd.
-
 Function natToBits' (n : nat) (acc : seq bool) {measure id n} : seq bool :=
   if n is 0 then acc 
   else let:  (q, r) := (n %/ 2, n %% 2)
