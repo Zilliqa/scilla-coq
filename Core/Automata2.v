@@ -25,11 +25,11 @@ Record message := Msg {
 }.
 
 (* State of a contract *)
-Record cstate (T : Type) := CState {
-      my_id : address;
-      balance : value;
-      state : T  
-}.
+(* Record cstate (T : Type) := CState { *)
+(*       my_id : address; *)
+(*       balance : value; *)
+(*       state : T   *)
+(* }. *)
 
 (* Global blockchain state *)
 Record bstate := BState {
@@ -52,7 +52,7 @@ Definition msg_bal (rt : resp_type) : value := rt.1.1.2.
 
 (* Transitions are functions *)
 Definition trans_fun_type :=
-  bstate -> cstate S -> message -> (cstate S * option message).
+  address -> value -> S -> message -> bstate -> (S * option message).
   
 (* Contract transition in the spirit of I/O automata *)
 Record ctransition :=
