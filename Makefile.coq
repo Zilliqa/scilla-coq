@@ -116,7 +116,8 @@ VFILES:=Heaps/coding.v\
   Libs/bits.v\
   Core/Automata.v\
   Core/Automata2.v\
-  Contracts/Puzzle.v
+  Contracts/Puzzle.v\
+  Contracts/Crowdfunding.v
 
 ifneq ($(filter-out archclean clean cleanall printenv,$(MAKECMDGOALS)),)
 -include $(addsuffix .d,$(VFILES))
