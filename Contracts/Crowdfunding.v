@@ -9,6 +9,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Section Crowdfunding.
 (* Encoding of the Crowdfunding contract from the Scilla whitepaper *)
 
 (******************************************************
@@ -226,7 +227,7 @@ transition Claim
 *)
 
 Definition claim_tag := 3.
-Definition claim : tft := fun id bal s m bc =>
+Definition claim_fun : tft := fun id bal s m bc =>
   let: from := sender m in
   if method m == claim_tag then
     let blk := block_num bc in
@@ -245,7 +246,12 @@ Definition claim : tft := fun id bal s m bc =>
               end
   else (s, None).
 
-(* Variable crowd_addr : address. *)
-(* Program Definition crowd_prot : Protocol crowsState := *)
-(*   @CProt _ crowd_addr init_reward s0 [:: update_reward; try_solution] _. *)
+Definition claim := CTrans claim_tag claim_fun.
 
+(* Definition of the protocol *)
+Variable crowd_addr : address.
+
+Program Definition crowd_prot : Protocol crowdState :=
+  @CProt _ crowd_addr 0 init_state [:: donate; get_funds; claim] _.
+
+End Crowdfunding.

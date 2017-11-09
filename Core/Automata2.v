@@ -84,6 +84,24 @@ End Protocol.
 
 Section Semantics.
 
+Variables (S : Type) (p : Protocol S).
+
+(* Blockchain schedules *)
+Definition schedule := seq (bstate * message).
+
+(* In a well-formed schedule block numbers only grow *)
+Fixpoint wf_sched (sch : schedule) :=
+  if sch is s :: sch'
+  then let bnum := block_num s.1 in
+       all [pred s' | bnum <= block_num s'.1] sch' && wf_sched sch'
+  else true.
+
+(* TODO: Define traces of the protocol wrt. a schedule as sequences of *)
+(* triplets *)
+
+(* TODO: Define safety properties as something that holds over every *)
+(* triplet; provide and induction principle for this *)
+
 (* TODO: define semantics for blockchain-schedules: 
 
 - Each components in the schedule has a timestamp, and an incoming message;
