@@ -24,12 +24,12 @@ Record message := Msg {
       body   :  payload
 }.
 
-(* State of a contract *)
-(* Record cstate (T : Type) := CState { *)
-(*       my_id : address; *)
-(*       balance : value; *)
-(*       state : T   *)
-(* }. *)
+(* Augmented state of a contract *)
+Record cstate (T : Type) := CState {
+      my_id : address;
+      balance : value;
+      state : T
+}.
 
 (* Global blockchain state *)
 Record bstate := BState {
