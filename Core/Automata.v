@@ -92,7 +92,7 @@ Record ctransition :=
 
       (* Relation between input and output state *)
       trans_rel : trans_rel_type input_filter;
-  }.
+    }.
 
 End Transitions.
 

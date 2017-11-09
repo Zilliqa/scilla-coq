@@ -92,7 +92,7 @@ transition Claim
 
 Record crowdState := CS {
    owner_mb_goal : address * nat * value;                          
-   backers : union_map [ordType of address] value; 
+   backers : seq (address * value); 
    funded : bool;
 }.
 
@@ -114,7 +114,7 @@ Variable init_max_block : nat.
 Variable init_goal : value.
 
 (* Initial state *)
-Definition init_state := CS (init_owner, init_max_block, init_max_block) Unit false.
+Definition init_state := CS (init_owner, init_max_block, init_max_block) [::] false.
 
 (*********************************************************)
 (********************* Transitions ***********************)
@@ -160,8 +160,9 @@ Definition donate_fun : tft := fun id bal s m bc =>
     let from := sender m in 
     if get_max_block s <= nxt_block
     then (s, Some (Msg 0 from 0 no_msg))
-    else if from \notin dom bs
-         then let bs' := bs \+ (from \\-> (val m)) in
+    else if all [pred e | e.1 != from] bs
+         (* new backer *)        
+         then let bs' := (from, val m) :: bs in
               let s'  := set_backers s bs' in
               (s', Some (Msg 0 from 0 ok_msg))
          else (s, Some (Msg 0 from 0 no_msg))
@@ -232,18 +233,22 @@ Definition claim_fun : tft := fun id bal s m bc =>
   if method m == claim_tag then
     let blk := block_num bc in
     if blk <= get_max_block s 
-    then (s, Some (Msg 0 from 0 no_msg))
+    then
+      (* Too early! *)
+      (s, Some (Msg 0 from 0 no_msg))
     else let bs := backers s in
-         if [|| (from \notin dom bs), funded s | get_goal s <= bal]
+         if [|| funded s | get_goal s <= bal]
+         (* Cannot reimburse: campaign suceeded *)     
          then (s, Some (Msg 0 from 0 no_msg))
-         else match find from bs with
-              | Some v =>
-                let bs' := free from bs in
-                let s'  := set_backers s bs' in
-                (s', Some (Msg v from 0 no_msg))
-              (* cannot happen *)
-              | _ => (s, Some (Msg 0 from 0 no_msg))
-              end
+         else let n := seq.find [pred e | e.1 == from] bs in
+              if n < size bs
+              then let v := nth 0 (map snd bs) n in
+                   let bs' := filter [pred e | e.1 != from] bs in
+                   let s'  := set_backers s bs' in
+                   (s', Some (Msg v from 0 no_msg))
+              else
+                (* Didn't back or already claimed *)
+                (s, None)
   else (s, None).
 
 Definition claim := CTrans claim_tag claim_fun.
@@ -253,5 +258,75 @@ Variable crowd_addr : address.
 
 Program Definition crowd_prot : Protocol crowdState :=
   @CProt _ crowd_addr 0 init_state [:: donate; get_funds; claim] _.
+
+Lemma crowd_tags : tags crowd_prot = [:: 1; 2; 3].
+Proof. by []. Qed.
+
+(***********************************************************)
+(**                  Safety properties                    **)
+(***********************************************************)
+
+(* The contract always has sufficient balance to reimburse everyone,
+   unless it's successfully finished its campaign:  
+
+   The "funded" flag is set only if the campaign goals were reached,
+   then all money goes to owner. Otherwise, the contract keeps 
+   all its money intact.
+
+   Perhaps, we should make it stronger, adding a temporal property
+   that one's reimbursement doesn't change.
+*)
+Definition balance_backed (st: cstate crowdState) : Prop :=
+  (* If the campaign not funded... *)
+  ~~ (funded (state st)) ->
+  (* the contract has enough funds to reimburse everyone. *)
+  sumn (map snd (backers (state st))) <= balance st.
+
+Lemma sufficient_funds_safe : safe crowd_prot balance_backed.
+Proof.
+apply: safe_ind=>[|[id bal s]bc m M Hi]//. 
+rewrite crowd_tags !inE in M.
+(* Get the exact transitions and start struggling... *)
+rewrite /= /apply_prot; case/orP: M; [|case/orP]=>/eqP M; rewrite M/=.
+
+(* Donate transition *)
+rewrite /donate_fun M eqxx.
+case: ifP=>/=_; [move/Hi=>{Hi}Hi|].
+- by rewrite subn0; apply: (leq_trans Hi (leq_addr (val m) bal)).
+case: ifP=>/=_; move/Hi=>{Hi}Hi; last first.
+- by rewrite subn0; apply: (leq_trans Hi (leq_addr (val m) bal)).
+by rewrite subn0 /balance_backed/= in Hi *; rewrite addnC leq_add2r.
+
+(* Get funds transition. *)
+rewrite /getfunds_fun M eqxx.
+case: ifP=>//=_; case:ifP=>//=_;[|move/Hi=>{Hi}Hi]; last first.
+- by rewrite subn0; apply: (leq_trans Hi (leq_addr (val m) bal)).
+case: ifP=>//=_; move/Hi=>{Hi}Hi.
+by rewrite subn0; apply: (leq_trans Hi (leq_addr (val m) bal)).
+
+(* Claim funds back *)
+rewrite /claim_fun M eqxx.
+case: ifP=>//=_; [move/Hi=>{Hi}Hi|].
+- by rewrite subn0; apply: (leq_trans Hi (leq_addr (val m) bal)).
+case: ifP=>//=X.
+- case/orP: X; first by rewrite /balance_backed/==>->.
+  by move=>_/Hi Z; rewrite subn0; apply: (leq_trans Z (leq_addr (val m) bal)).
+case: ifP=>//=G/=; move/Hi=>/={Hi}Hi.
+rewrite addnC.
+have H1: nth 0 [seq i.2 | i <- backers s] (seq.find [pred e | e.1 == sender m] (backers s)) <=
+         sumn [seq i.2 | i <- backers s].
+- Search _ (sumn).
+  (* sumn_cat *)
+  by admit. (* Boring and trivial *)
+move: (leq_trans H1 Hi)=> H2.  
+rewrite -(addnBA _ H2); clear H2 H1.
+suff H3: sumn [seq i.2 | i <- backers s & [pred e | e.1 != sender m] i] <=
+         bal - nth 0 [seq i.2 | i <- backers s] (seq.find [pred e | e.1 == sender m] (backers s)).
+-  by apply: (leq_trans H3 (leq_addl (val m) _ )).
+(* Search _ (_ - _ <= _ - _). *)
+admit.
+(* super-boring manipulation with sums... *)   
+   
+Admitted.
 
 End Crowdfunding.
