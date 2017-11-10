@@ -43,8 +43,8 @@ Program Definition w : WORD  := #1232.
 
 (* TODO: develop the theory of 256-bit signed integers *)
 
-From mathcomp.algebra
-Require Import ssrint.
+(* From mathcomp.algebra *)
+(* Require Import ssrint. *)
 
 (* Check a. *)
 

@@ -2,7 +2,10 @@ From mathcomp.ssreflect
 Require Import ssreflect ssrbool ssrnat eqtype ssrfun seq.
 From mathcomp
 Require Import path.
-Require Import Eqdep pred prelude idynamic ordtype pcm finmap unionmap heap coding. 
+Require Import Eqdep.
+From Heaps
+Require Import pred prelude idynamic ordtype pcm finmap unionmap heap coding. 
+From Contracts
 Require Import Automata2.
 
 Set Implicit Arguments.
@@ -315,18 +318,16 @@ case: ifP=>//=G/=; move/Hi=>/={Hi}Hi.
 rewrite addnC.
 have H1: nth 0 [seq i.2 | i <- backers s] (seq.find [pred e | e.1 == sender m] (backers s)) <=
          sumn [seq i.2 | i <- backers s].
-- Search _ (sumn).
-  (* sumn_cat *)
+- (* sumn_cat *)
   by admit. (* Boring and trivial *)
 move: (leq_trans H1 Hi)=> H2.  
-rewrite -(addnBA _ H2); clear H2 H1.
+rewrite -(addnBA _ H2); clear H2.
 suff H3: sumn [seq i.2 | i <- backers s & [pred e | e.1 != sender m] i] <=
          bal - nth 0 [seq i.2 | i <- backers s] (seq.find [pred e | e.1 == sender m] (backers s)).
 -  by apply: (leq_trans H3 (leq_addl (val m) _ )).
 (* Search _ (_ - _ <= _ - _). *)
 admit.
 (* super-boring manipulation with sums... *)   
-   
 Admitted.
 
 End Crowdfunding.
