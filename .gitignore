@@ -28,3 +28,5 @@ lia.cache
 nia.cache
 nlia.cache
 nra.cache
+
+CoqMakefile.conf
