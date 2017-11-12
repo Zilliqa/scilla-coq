@@ -16,7 +16,7 @@ Section Crowdfunding.
 (* Encoding of the Crowdfunding contract from the Scilla whitepaper *)
 
 (******************************************************
-contract Crowdfunding 
+contract Crowdfunding
  (owner     : address,
   max_block : uint,
   goal      : uint)
@@ -28,13 +28,13 @@ contract Crowdfunding
 }
 
 (* Transition 1: Donating money *)
-transition Donate 
+transition Donate
   (sender : address, value : uint, tag : string)
   (* Simple filter identifying this transition *)
   if tag == "donate" =>
 
   bs <- & backers;
-  blk <- && block_number; 
+  blk <- && block_number;
   let nxt_block = blk + 1 in
   if max_block <= nxt_block
   then send (<to -> sender, amount -> 0,
@@ -62,7 +62,7 @@ transition GetFunds
   bal <- & balance;
   if max_block >= blk
   then if goal <= bal
-       then funded := true;   
+       then funded := true;
             send (<to -> owner, amount -> bal,
                    tag -> "main", msg -> "funded">, MT)
        else send (<to -> owner, amount -> 0,
@@ -81,21 +81,21 @@ transition Claim
   else bs <- & backers;
        bal <- & balance;
        if (not (contains(bs, sender))) || funded ||
-          goal <= bal 
+          goal <= bal
        then send (<to -> sender, amount -> 0,
                    tag -> "main",
 	           msg -> "cannot_refund">, MT)
-       else 
+       else
        let v = get(bs, sender) in
        backers := remove(bs, sender);
-       send (<to -> sender, amount -> v, tag -> "main", 
+       send (<to -> sender, amount -> v, tag -> "main",
               msg -> "here_is_your_money">, MT)
 
  *******************************************************)
 
 Record crowdState := CS {
-   owner_mb_goal : address * nat * value;                          
-   backers : seq (address * value); 
+   owner_mb_goal : address * nat * value;
+   backers : seq (address * value);
    funded : bool;
 }.
 
@@ -125,7 +125,7 @@ Definition init_state := CS (init_owner, init_max_block, init_max_block) [::] fa
 
 (* Transition 1 *)
 (*
-transition Donate 
+transition Donate
   (sender : address, value : uint, tag : string)
   (* Simple filter identifying this transition *)
   if tag == "donate" =>
@@ -160,11 +160,11 @@ Definition donate_fun : tft := fun id bal s m bc =>
   if method m == donate_tag then
     let bs := backers s in
     let nxt_block := block_num bc + 1 in
-    let from := sender m in 
+    let from := sender m in
     if get_max_block s <= nxt_block
     then (s, Some (Msg 0 from 0 no_msg))
     else if all [pred e | e.1 != from] bs
-         (* new backer *)        
+         (* new backer *)
          then let bs' := (from, val m) :: bs in
               let s'  := set_backers s bs' in
               (s', Some (Msg 0 from 0 ok_msg))
@@ -181,7 +181,7 @@ transition GetFunds
   if (tag == "getfunds") && (sender == owner) =>
   blk <- && block_number;
   bal <- & balance;
-  if max_block >= blk
+  if max_block < blk
   then if goal <= bal
        then funded := true;   
             send (<to -> owner, amount -> bal,
@@ -194,10 +194,10 @@ transition GetFunds
 
 Definition getfunds_tag := 2.
 Definition getfunds_fun : tft := fun id bal s m bc =>
-  let: from := sender m in 
+  let: from := sender m in
   if (method m == getfunds_tag) && (from == (get_owner s)) then
     let blk := block_num bc + 1 in
-    if (get_max_block s >= blk) 
+    if (get_max_block s < blk)
     then if get_goal s <= bal
          then let s' := set_funded s true in
               (s', Some (Msg bal from 0 ok_msg))
@@ -219,14 +219,14 @@ transition Claim
   else bs <- & backers;
        bal <- & balance;
        if (not (contains(bs, sender))) || funded ||
-          goal <= bal 
+          goal <= bal
        then send (<to -> sender, amount -> 0,
                    tag -> "main",
 	           msg -> "cannot_refund">, MT)
-       else 
+       else
        let v = get(bs, sender) in
        backers := remove(bs, sender);
-       send (<to -> sender, amount -> v, tag -> "main", 
+       send (<to -> sender, amount -> v, tag -> "main",
               msg -> "here_is_your_money">, MT)
 *)
 
@@ -235,13 +235,13 @@ Definition claim_fun : tft := fun id bal s m bc =>
   let: from := sender m in
   if method m == claim_tag then
     let blk := block_num bc in
-    if blk <= get_max_block s 
+    if blk <= get_max_block s
     then
       (* Too early! *)
       (s, Some (Msg 0 from 0 no_msg))
     else let bs := backers s in
          if [|| funded s | get_goal s <= bal]
-         (* Cannot reimburse: campaign suceeded *)     
+         (* Cannot reimburse: campaign suceeded *)
          then (s, Some (Msg 0 from 0 no_msg))
          else let n := seq.find [pred e | e.1 == from] bs in
               if n < size bs
@@ -266,19 +266,22 @@ Lemma crowd_tags : tags crowd_prot = [:: 1; 2; 3].
 Proof. by []. Qed.
 
 (***********************************************************)
-(**                  Safety properties                    **)
+(**             Correctness properties                    **)
 (***********************************************************)
 
-(* The contract always has sufficient balance to reimburse everyone,
-   unless it's successfully finished its campaign:  
+(**********************************************************
 
-   The "funded" flag is set only if the campaign goals were reached,
-   then all money goes to owner. Otherwise, the contract keeps 
-   all its money intact.
+1. The contract always has sufficient balance to reimburse everyone,
+unless it's successfully finished its campaign:
 
-   Perhaps, we should make it stronger, adding a temporal property
-   that one's reimbursement doesn't change.
-*)
+The "funded" flag is set only if the campaign goals were reached, then
+all money goes to owner. Otherwise, the contract keeps all its money
+intact.
+
+Perhaps, we should make it stronger, adding a temporal property that
+one's reimbursement doesn't change.
+**********************************************************)
+
 Definition balance_backed (st: cstate crowdState) : Prop :=
   (* If the campaign not funded... *)
   ~~ (funded (state st)) ->
@@ -287,7 +290,7 @@ Definition balance_backed (st: cstate crowdState) : Prop :=
 
 Lemma sufficient_funds_safe : safe crowd_prot balance_backed.
 Proof.
-apply: safe_ind=>[|[id bal s]bc m M Hi]//. 
+apply: safe_ind=>[|[id bal s]bc m M Hi]//.
 rewrite crowd_tags !inE in M.
 (* Get the exact transitions and start struggling... *)
 rewrite /= /apply_prot; case/orP: M; [|case/orP]=>/eqP M; rewrite M/=.
@@ -316,18 +319,98 @@ case: ifP=>//=X.
   by move=>_/Hi Z; rewrite subn0; apply: (leq_trans Z (leq_addr (val m) bal)).
 case: ifP=>//=G/=; move/Hi=>/={Hi}Hi.
 rewrite addnC.
-have H1: nth 0 [seq i.2 | i <- backers s] (seq.find [pred e | e.1 == sender m] (backers s)) <=
+have H1: nth 0 [seq i.2 | i <- backers s]
+             (seq.find [pred e | e.1 == sender m] (backers s)) <=
          sumn [seq i.2 | i <- backers s].
 - (* sumn_cat *)
   by admit. (* Boring and trivial *)
-move: (leq_trans H1 Hi)=> H2.  
+move: (leq_trans H1 Hi)=> H2.
 rewrite -(addnBA _ H2); clear H2.
 suff H3: sumn [seq i.2 | i <- backers s & [pred e | e.1 != sender m] i] <=
-         bal - nth 0 [seq i.2 | i <- backers s] (seq.find [pred e | e.1 == sender m] (backers s)).
+         bal - nth 0 [seq i.2 | i <- backers s]
+                   (seq.find [pred e | e.1 == sender m] (backers s)).
 -  by apply: (leq_trans H3 (leq_addl (val m) _ )).
-(* Search _ (_ - _ <= _ - _). *)
-admit.
-(* super-boring manipulation with sums... *)   
+   admit.
+(* Proven modulo super-boring manipulation with sums... *)
 Admitted.
+
+(********************************************************)
+(******   Proving temporal properties              ******)
+(********************************************************)
+
+(* Contribution of backer b is d is recorded in the `backers` *)
+Definition donated b (d : value) st :=
+  (filter [pred e | e.1 == b] (backers (state st))) == [:: (b, d)].
+
+Definition keeps_donation b d (st st' : cstate crowdState) :=
+  (filter [pred e | e.1 == b] (backers (state st'))) == [:: (b, d)].
+
+(* b doesn't claim its funding back *)
+Definition no_claims_from b (q : bstate * message) := sender q.2 != b.
+
+(**********************************************************
+
+2. The following lemma shows that the donation record is going to be
+preserved by the protocol since the moment it's been contributed, as
+long, as no messages from the corresponding backer b is sent to the
+contract. This guarantees that the contract doesn't "drop" the record
+about someone's donations.
+
+In conjunctions with sufficient_funds_safe (proved above) this
+guarantees that, if the campaign isn't funded, there is always a
+necessary amount on the balance to reimburse each backer, in the case
+of failure of the campaign.
+
+**********************************************************)
+
+Lemma donation_preserved (b : address) (d : value):
+  since_as_long crowd_prot (donated b d)
+                (keeps_donation b d) (no_claims_from b).
+Proof.
+(* This is where we would need a temporal logic, but, well.. *)
+(* Let's prove it out of the definition. *)
+elim=>[|[bc m] sc Hi]st st' P R; first by rewrite /reachable'=>/=Z; subst st'.
+rewrite /reachable'/==>E. 
+apply: (Hi (post (step_prot crowd_prot st bc m))); last 2 first; clear Hi.
+- by move=>q; move:(R q)=>{R}R G; apply: R; apply/In_cons; right.
+- rewrite E; set st1 := (step_prot crowd_prot st bc m); clear E R P.
+  by case: sc st1=>//=[[bc' m']] sc st1/=.   
+clear E.
+have N: sender m != b. 
+- suff B: no_claims_from b (bc, m) by [].
+  by apply: R; apply/In_cons; left.
+case M: (method m \in tags crowd_prot); last first.
+- by move/negbT: M=>M; rewrite (bad_tag_step bc st M).
+case: st P=>id a s; rewrite /donated/==>D. 
+case/orP: M; [|case/orP;[| rewrite orbC]]=>/eqP T; 
+rewrite /apply_prot T/=. 
+- rewrite /donate_fun T/=; case: ifP=>//_; case: ifP=>//_/=.
+  by move/negbTE: N=>->. 
+- by rewrite /getfunds_fun T/=; case: ifP=>//_; case: ifP=>//_; case:ifP.
+rewrite /claim_fun T/=; case:ifP=>//_; case: ifP=>//_; case: ifP=>//=X.
+rewrite -filter_predI/=; move/eqP:D=><-; apply/eqP.
+elim: (backers s)=>//=x xs Hi; rewrite Hi; clear Hi.
+case B: (x.1 == b)=>//=.
+by move/eqP: B=>?; subst b; move/negbTE: N; rewrite eq_sym=>/negbT=>->.
+Qed.
+
+(************************************************************************
+
+3. The final property: if the campaign has failed (goal hasn't been
+reached and the deadline has passed), every registered backer can get
+its donation back.
+
+TODO: formulate and prove it.
+
+************************************************************************)
+
+
+(************************************************************************
+
+4. Can we have a logic that allows to express all these properties
+declaratively? Perhaps, we could do it in TLA?
+
+************************************************************************)
+
 
 End Crowdfunding.

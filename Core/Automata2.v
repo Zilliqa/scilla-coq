@@ -3,7 +3,7 @@ Require Import ssreflect ssrbool ssrnat eqtype ssrfun seq.
 From mathcomp Require Import path.
 Require Import Eqdep.
 From Heaps
-Require Import pred prelude idynamic ordtype pcm finmap unionmap heap coding. 
+Require Import pred prelude idynamic ordtype pcm finmap unionmap heap coding.
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
@@ -35,7 +35,7 @@ Record cstate (T : Type) := CState {
 (* Global blockchain state *)
 Record bstate := BState {
       block_num : nat;
-      (* Anything else? *)               
+      (* Anything else? *)
 }.
 
 End State.
@@ -107,7 +107,7 @@ Record step :=
   Step {
       pre  : cstate S;
       post : cstate S;
-      out  : option message                                            
+      out  : option message
   }.
 
 Definition trace := seq step.
@@ -129,8 +129,10 @@ Definition step_prot pre bc m : step :=
 Fixpoint execute (pre : cstate S) (sc: schedule) : trace :=
   if sc is (bc, m) :: sc'
   then let stp := step_prot pre bc m in
-       stp :: execute (post stp) sc' 
+       stp :: execute (post stp) sc'
   else [::].
+
+
 
 Definition state0 := CState (acc p) (init_bal p) (init_state p).
 
@@ -161,49 +163,72 @@ rewrite [apply_prot _ _ _ _ _]surjective_pairing/=.
 rewrite /apply_prot.
 suff X : seq.find (fun t : ctransition S => ttag t == method m) (transitions p) =
          size (transitions p).
-by rewrite !X !nth_default ?leqnn//. 
+by rewrite !X !nth_default ?leqnn//.
 move: (find_size (fun t : ctransition S => ttag t == method m) (transitions p)).
 rewrite leq_eqVlt; case/orP; first by move/eqP.
 rewrite -has_find=>G. suff X: False by [].
 rewrite /tags in M; clear s bal id bc.
 elim: (transitions p) G M=>//t ts Hi/=.
-case/orP; last by move/Hi=>{Hi} Hi H; apply: Hi; rewrite inE in H; case/norP: H. 
+case/orP; last by move/Hi=>{Hi} Hi H; apply: Hi; rewrite inE in H; case/norP: H.
 by move/eqP=>->; rewrite inE eqxx.
 Qed.
 
 (* A strong induction principle for proving safety *)
 Lemma safe_ind (I : cstate S -> Prop) :
   I state0 ->
-  (forall pre bc m, (method m \in tags p) -> I pre -> I (post (step_prot pre bc m))) ->
+  (forall pre bc m, 
+      (method m \in tags p) -> I pre -> I (post (step_prot pre bc m))) ->
   safe I.
 Proof.
 move=>H1 H2; case=>[|[bc m] sc] pre pst out; first by case=>[][->->].
 case/In_cons=>[E|];[| rewrite -/execute].
 - have Z: pst = post (step_prot state0 bc m) by rewrite -E.
-  subst pst; split. 
+  subst pst; split.
   + suff Z: pre = state0 by subst pre.
     move: E; rewrite /step_prot/=.
-    by rewrite [apply_prot _ _ _ _ _]surjective_pairing; case.  
+    by rewrite [apply_prot _ _ _ _ _]surjective_pairing; case.
   case M: (method m \in tags p); first by apply: H2.
-  by rewrite bad_tag_step// M.  
+  by rewrite bad_tag_step// M.
 have Hp: I (post (step_prot state0 bc m)).
 - case M: (method m \in tags p); first by apply: H2.
-  by rewrite bad_tag_step// M.   
+  by rewrite bad_tag_step// M.
 move: (post (step_prot state0 bc m)) Hp=>s Hi G; clear H1 bc m.
 elim: sc s Hi G=>//[[bc m] sc] Hi s Is.
 case/In_cons=>[E|];[|rewrite -/execute]; last first.
 - move/Hi=>H; apply: H.
   case M: (method m \in tags p); first by apply: H2.
-  by rewrite bad_tag_step// M.   
+  by rewrite bad_tag_step// M.
 suff Z: s = pre /\ pst = post (step_prot pre bc m).
 - case: Z=>??; subst pre pst; split=>//.
   case M: (method m \in tags p); first by apply: H2.
-  by rewrite bad_tag_step// M.   
+  by rewrite bad_tag_step// M.
 move: E; rewrite /step_prot/=; clear Is.
 case: s=>id bal s; rewrite [apply_prot _ _ _ _ _]surjective_pairing.
-by case=>->; rewrite {4}[apply_prot id bal s m bc]surjective_pairing. 
+by case=>->; rewrite {4}[apply_prot id bal s m bc]surjective_pairing.
 Qed.
- 
+
+(*****************************************************)
+(*            Some modal connectives                 *)
+(*****************************************************)
+
+Definition reachable' (st st' : cstate S) sc :=
+  st' = post (last (Step st st None) (execute st sc)).
+
+Definition reachable (st st' : cstate S) :=
+  exists sc, reachable' st st' sc.
+
+(* q holds since p , as long as schedule bits satisfy r. *)
+Definition since_as_long
+           (p : cstate S -> Prop)
+           (q : cstate S -> cstate S -> Prop)
+           (r : bstate * message -> Prop) :=
+  forall sc st st',
+    p st ->
+    (forall b, b \In sc -> r b) ->
+    reachable' st st' sc ->
+    q st st'.
+
+
 
 End Semantics.
 
