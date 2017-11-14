@@ -277,7 +277,7 @@ Qed.
 (**             Correctness properties                    **)
 (***********************************************************)
 
-(**********************************************************
+(************************************************************************
 
 1. The contract always has sufficient balance to reimburse everyone,
 unless it's successfully finished its campaign:
@@ -288,7 +288,8 @@ intact.
 
 Perhaps, we should make it stronger, adding a temporal property that
 one's reimbursement doesn't change.
-**********************************************************)
+
+************************************************************************)
 
    
 Definition balance_backed (st: cstate crowdState) : Prop :=
@@ -353,9 +354,9 @@ move/negbTE=>->/={a}; rewrite -(leq_add2l v) in Hi.
 by rewrite addnBA in Hi; last by apply: find_leq.
 Qed.
 
-(********************************************************)
-(******   Proving temporal properties              ******)
-(********************************************************)
+(***********************************************************************)
+(******           Proving temporal properties                     ******)
+(***********************************************************************)
 
 (* Contribution of backer b is d is recorded in the `backers` *)
 Definition donated b (d : value) st :=
@@ -364,7 +365,7 @@ Definition donated b (d : value) st :=
 (* b doesn't claim its funding back *)
 Definition no_claims_from b (q : bstate * message) := sender q.2 != b.
 
-(**********************************************************
+(************************************************************************
 
 2. The following lemma shows that the donation record is going to be
 preserved by the protocol since the moment it's been contributed, as
@@ -377,7 +378,7 @@ guarantees that, if the campaign isn't funded, there is always a
 necessary amount on the balance to reimburse each backer, in the case
 of failure of the campaign.
 
-**********************************************************)
+************************************************************************)
 
 Lemma donation_preserved (b : address) (d : value):
   since_as_long crowd_prot (donated b d)
