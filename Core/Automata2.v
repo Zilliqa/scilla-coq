@@ -21,6 +21,7 @@ Definition payload := (seq (nat * seq nat)).
 Record message := Msg {
       val    : value;
       sender : address;
+      to     : address;
       method : tag;
       body   :  payload
 }.
