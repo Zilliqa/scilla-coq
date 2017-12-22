@@ -26,3 +26,11 @@ opam install coq-mathcomp-ssreflect
 ```
 make clean; make
 ```
+
+## Project Structure
+
+* `Core/Automata2.v` - definition of the automata-based language
+  semantics;
+
+* `Contracts/Puzzle.v` - a simple puzzle-solving game contract and its properties;
+* `Contracts/Crowdfunding.v` - the Crowdfunding contract and its properties;
