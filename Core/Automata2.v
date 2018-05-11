@@ -181,7 +181,7 @@ Lemma safe_ind (I : cstate S -> Prop) :
       (method m \in tags p) -> I pre -> I (post (step_prot pre bc m))) ->
   safe I.
 Proof.
-move=>H1 H2; case=>[|[bc m] sc] pre pst out; first by case=>[][->->].
+move=>H1 H2; case=>[|[bc m] sc] pre pst out; first by case; case=>->->.
 case/In_cons=>[E|];[| rewrite -/execute].
 - have Z: pst = post (step_prot state0 bc m) by rewrite -E.
   subst pst; split.
@@ -228,8 +228,6 @@ Definition since_as_long
     (forall b, b \In sc -> r b) ->
     reachable' st st' sc ->
     q st st'.
-
-
 
 End Semantics.
 
