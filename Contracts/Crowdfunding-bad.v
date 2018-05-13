@@ -110,9 +110,10 @@ Definition claim_fun : tft := fun id bal s m bc =>
          else let n := seq.find [pred e | e.1 == from] bs in
               if n < size bs
               then let v := nth 0 (map snd bs) n in
+                   (* DEMO: change != to ==, so Lemma 2 breaks *)
                    let bs' := filter [pred e | e.1 != from] bs in
                    let s'  := set_backers s bs' in
-                   (* DEMO: change v to 0, so Lemma 3 break *)
+                   (* DEMO: change v to 0, so Lemma 3 breaks *)
                    (s', Some (Msg v crowd_addr from 0 ok_msg))
               else
                 (s, None)
