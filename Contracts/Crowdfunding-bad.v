@@ -140,35 +140,9 @@ Qed.
 (**             Correctness properties                    **)
 (***********************************************************)
 
-(* Lemma 3 *)
-Lemma can_claim_back b d st bc:
-  (* We have donated, so the contract holds that state *)
-  donated b d st ->
-  (* Not funded *)
-  ~~(funded (state st)) ->
-  (* Balance is small: not reached the goal *)
-  balance st < (get_goal (state st)) ->
-  (* Block number exceeds the set number *)
-  get_max_block (state st) < block_num bc ->
-  (* Can emit message from b *)
-  exists (m : message),
-    sender m == b /\
-    out (step_prot crowd_prot st bc m) = Some (Msg d crowd_addr b 0 ok_msg).
-Proof.
-move=>D Nf Nb Nm.
-exists (Msg 0 b crowd_addr claim_tag [::]); split=>//.
-rewrite /step_prot.
-case: st D Nf Nb Nm =>id bal s/= D Nf Nb Nm.
-rewrite /apply_prot/=/claim_fun/=leqNgt Nm/= leqNgt Nb/=.
-rewrite /donated/= in D.
-move/negbTE: Nf=>->/=; rewrite -(has_find [pred e | e.1 == b]) has_filter.
-move/eqP: D=>D; rewrite D/=.
-congr (Some _); congr (Msg _ _ _ _ _). 
-elim: (backers s) D=>//[[a w]]bs/=; case:ifP; first by move/eqP=>->{a}/=_; case. 
-by move=>X Hi H; move/Hi: H=><-. 
-Qed.
-
-(* Lemma 2 *)
+(**************************************************************)
+(* Lemma 2: Contract will not alter its contribution records. *)
+(**************************************************************)
 Lemma donation_preserved (b : address) (d : value):
   since_as_long crowd_prot (donated b d)
                 (fun _ s' => donated b d s') (no_claims_from b).
@@ -198,13 +172,47 @@ case B: (x.1 == b)=>//=.
 by move/eqP: B=>?; subst b; move/negbTE: N; rewrite eq_sym=>/negbT=>->.
 Qed.
 
+(*********************************************************************)
+(* Lemma 3: Each contributor will be refunded the right amount,
+            if the campaign fails. *)
+(*********************************************************************)
+Lemma can_claim_back b d st bc:
+  (* We have donated, so the contract holds that state *)
+  donated b d st ->
+  (* Not funded *)
+  ~~(funded (state st)) ->
+  (* Balance is small: not reached the goal *)
+  balance st < (get_goal (state st)) ->
+  (* Block number exceeds the set number *)
+  get_max_block (state st) < block_num bc ->
+  (* Can emit message from b *)
+  exists (m : message),
+    sender m == b /\
+    out (step_prot crowd_prot st bc m) = Some (Msg d crowd_addr b 0 ok_msg).
+Proof.
+move=>D Nf Nb Nm.
+exists (Msg 0 b crowd_addr claim_tag [::]); split=>//.
+rewrite /step_prot.
+case: st D Nf Nb Nm =>id bal s/= D Nf Nb Nm.
+rewrite /apply_prot/=/claim_fun/=leqNgt Nm/= leqNgt Nb/=.
+rewrite /donated/= in D.
+move/negbTE: Nf=>->/=; rewrite -(has_find [pred e | e.1 == b]) has_filter.
+move/eqP: D=>D; rewrite D/=.
+congr (Some _); congr (Msg _ _ _ _ _). 
+elim: (backers s) D=>//[[a w]]bs/=; case:ifP; first by move/eqP=>->{a}/=_; case. 
+by move=>X Hi H; move/Hi: H=><-. 
+Qed.
+
+(********************************************************************)
+(* Lemma 1: Contract will always have enough balance 
+            to refund everyone. *)
+(********************************************************************)
 Definition balance_backed (st: cstate crowdState) : Prop :=
   (* If the campaign not funded... *)
   ~~ (funded (state st)) ->
   (* the contract has enough funds to reimburse everyone. *)
   sumn (map snd (backers (state st))) <= balance st.
 
-(* Lemma 1 *)
 Lemma sufficient_funds_safe : safe crowd_prot balance_backed.
 Proof.
 apply: safe_ind=>[|[id bal s]bc m M Hi]//.

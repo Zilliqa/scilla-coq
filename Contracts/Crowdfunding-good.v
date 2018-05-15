@@ -135,7 +135,10 @@ Definition balance_backed (st: cstate crowdState) : Prop :=
   (* the contract has enough funds to reimburse everyone. *)
   sumn (map snd (backers (state st))) <= balance st.
 
-(* Lemma 1 *)
+(********************************************************************)
+(* Lemma 1: Contract will always have enough balance 
+            to refund everyone. *)
+(********************************************************************)
 Lemma sufficient_funds_safe : safe crowd_prot balance_backed.
 Proof.
 apply: safe_ind=>[|[id bal s]bc m M Hi]//.
@@ -199,7 +202,10 @@ Definition donated b (d : value) st :=
 (* b doesn't claim its funding back *)
 Definition no_claims_from b (q : bstate * message) := sender q.2 != b.
 
-(* Lemma 2 *)
+
+(**************************************************************)
+(* Lemma 2: Contract will not alter its contribution records. *)
+(**************************************************************)
 Lemma donation_preserved (b : address) (d : value):
   since_as_long crowd_prot (donated b d)
                 (fun _ s' => donated b d s') (no_claims_from b).
@@ -229,7 +235,10 @@ case B: (x.1 == b)=>//=.
 by move/eqP: B=>?; subst b; move/negbTE: N; rewrite eq_sym=>/negbT=>->.
 Qed.
 
-(* Lemma 3 *)
+(*********************************************************************)
+(* Lemma 3: Each contributor will be refunded the right amount,
+            if the campaign fails. *)
+(*********************************************************************)
 Lemma can_claim_back b d st bc:
   (* We have donated, so the contract holds that state *)
   donated b d st ->

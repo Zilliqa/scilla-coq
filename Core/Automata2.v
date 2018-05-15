@@ -153,7 +153,7 @@ the unary property I holds (i.e., I s).
 *)
 (****************************************************************)
 Definition safe (I : cstate S -> Prop) : Prop :=
-  forall sc pre post out,
+  forall (sc : schedule) pre post out,
     Step pre post out \In execute0 sc -> I pre /\ I post.
 
 Lemma bad_tag_step bc m s :
