@@ -7,14 +7,10 @@ properties.
 
 ### Requirements
 
-* Coq 8.7, available from https://coq.inria.fr/download
-* Mathematical Components Library 1.6.4, available from
-  https://math-comp.github.io/math-comp/
+* [Coq 8.7 or 8.8](https://coq.inria.fr)
+* [Mathematical Components 1.6.4 or 1.7.0](http://math-comp.github.io/math-comp/) (`ssreflect`)
   
-For the installation, follow instructions in the corresponding README files.
-
-Alternatively, Coq and mathcomp can be installed via the opam package
-manager, by executing the following commands in the console:
+We recommend installing the requirements via [OPAM](https://opam.ocaml.org/doc/Install.html):
 
 ```
 opam repo add coq-released https://coq.inria.fr/opam/released
