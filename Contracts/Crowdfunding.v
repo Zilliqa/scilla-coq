@@ -117,7 +117,7 @@ Variable init_max_block : nat.
 Variable init_goal : value.
 
 (* Initial state *)
-Definition init_state := CS (init_owner, init_max_block, init_max_block) [::] false.
+Definition init_state := CS (init_owner, init_max_block, init_goal) [::] false.
 
 (*********************************************************)
 (********************* Transitions ***********************)

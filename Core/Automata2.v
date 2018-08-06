@@ -123,7 +123,8 @@ Definition step_prot pre bc m : step :=
   let: CState id bal s := pre in
   let: (s', out) := apply_prot id bal s m bc in
   let: bal' := if out is Some m' then (bal + val m) - val m' else bal in
-  let: post := CState id bal' s' in
+  let: s'' := if out is Some m' then s' else s in
+  let: post := CState id bal' s'' in
   Step pre post out.
 
 (* Map a schedule into a trace *)
@@ -205,7 +206,7 @@ suff Z: s = pre /\ pst = post (step_prot pre bc m).
   by rewrite bad_tag_step// M.
 move: E; rewrite /step_prot/=; clear Is.
 case: s=>id bal s; rewrite [apply_prot _ _ _ _ _]surjective_pairing.
-by case=>->; rewrite {4}[apply_prot id bal s m bc]surjective_pairing.
+by case=>->; rewrite {4 5}[apply_prot id bal s m bc]surjective_pairing.
 Qed.
 
 (*****************************************************)
