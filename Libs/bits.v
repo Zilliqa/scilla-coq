@@ -1,5 +1,5 @@
-From mathcomp.ssreflect
-Require Import ssreflect ssrbool ssrnat eqtype ssrfun seq tuple div.
+From mathcomp
+Require Import ssreflect ssrbool ssrnat eqtype seq tuple div.
 
 Definition BITS n := n.-tuple bool.
 Definition NIBBLE := BITS 4.

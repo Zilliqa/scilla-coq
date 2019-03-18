@@ -1,10 +1,7 @@
-From mathcomp.ssreflect
-Require Import ssreflect ssrbool ssrnat eqtype ssrfun seq.
 From mathcomp
-Require Import path.
-Require Import Eqdep.
+Require Import ssreflect ssrbool ssrnat eqtype ssrfun seq.
 From fcsl
-Require Import pred prelude axioms ordtype pcm finmap unionmap heap.
+Require Import pred.
 From scilla
 Require Import Automata2.
 
