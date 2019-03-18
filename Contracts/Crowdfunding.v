@@ -386,9 +386,7 @@ Proof.
 elim=>[|[bc m] sc Hi]st st' P R; first by rewrite /reachable'=>/=Z; subst st'.
 rewrite /reachable'/==>E. 
 apply: (Hi (post (step_prot crowd_prot st bc m))); last 2 first; clear Hi.
-Set Warnings "-duplicate-clear".
-- by move=>q; move:(R q)=>{R} R G; apply: R; apply/In_cons; right.
-Set Warnings "duplicate-clear".
+- by move=>q; move:(R q)=>{R}-R G; apply: R; apply/In_cons; right.
 - rewrite E; set st1 := (step_prot crowd_prot st bc m); clear E R P.
   by case: sc st1=>//=[[bc' m']] sc st1/=.   
 clear E.
