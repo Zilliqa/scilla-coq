@@ -3,8 +3,8 @@ Require Import ssreflect ssrbool ssrnat eqtype ssrfun seq.
 From mathcomp
 Require Import path.
 Require Import Eqdep.
-From Heaps
-Require Import pred prelude idynamic ordtype pcm finmap unionmap heap coding. 
+From fcsl
+Require Import pred prelude axioms ordtype pcm finmap unionmap heap.
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.

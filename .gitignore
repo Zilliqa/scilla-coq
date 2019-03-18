@@ -30,4 +30,5 @@ nlia.cache
 nra.cache
 .coqdeps.d
 
+CoqMakefile
 CoqMakefile.conf
