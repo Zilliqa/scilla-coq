@@ -64,6 +64,7 @@ Variable init_sender : nat.
 Variable init_reward : nat.
 
 (* Inital state after the constructor execution *)
+Set Warnings "-abstract-large-number".
 Definition s0 := PS init_sender false init_reward (bytes32 11111) None.
 
 (* Transition 1 -- changing the reward *)

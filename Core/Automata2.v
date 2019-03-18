@@ -168,7 +168,7 @@ rewrite leq_eqVlt; case/orP; first by move/eqP.
 rewrite -has_find=>G. suff X: False by [].
 rewrite /tags in M; clear s bal id bc.
 elim: (transitions p) G M=>//t ts Hi/=.
-case/orP; last by move/Hi=>{Hi} Hi H; apply: Hi; rewrite inE in H; case/norP: H.
+case/orP; last by move=> {}/Hi Hi H; apply: Hi; rewrite inE in H; case/norP: H.
 by move/eqP=>->; rewrite inE eqxx.
 Qed.
 

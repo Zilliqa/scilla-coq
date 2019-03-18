@@ -7,8 +7,8 @@ properties.
 
 ### Requirements
 
-* [Coq v 8.7 - 8.9](https://coq.inria.fr)
-* [Mathematical Components 1.6.4 or 1.7.0](https://math-comp.github.io/math-comp) (`ssreflect`)
+* [Coq v8.9](https://coq.inria.fr)
+* [Mathematical Components 1.6.4 - 1.7.0](https://math-comp.github.io/math-comp) (`ssreflect`)
 * [FCSL-PCM 1.0.0](https://github.com/imdea-software/fcsl-pcm)
   
 We recommend installing the requirements via [opam](https://opam.ocaml.org/doc/Install.html):
