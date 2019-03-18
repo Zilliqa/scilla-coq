@@ -4,10 +4,9 @@ From fcsl
 Require Import pred.
 From scilla
 Require Import Automata2.
+From scilla
+Require Import options.
 
-Set Implicit Arguments.
-Unset Strict Implicit.
-Unset Printing Implicit Defensive.
 
 Section Crowdfunding.
 (* Encoding of the Crowdfunding contract from the Scilla whitepaper *)

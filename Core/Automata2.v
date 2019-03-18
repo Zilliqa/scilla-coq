@@ -2,9 +2,8 @@ From mathcomp
 Require Import ssreflect ssrbool ssrnat eqtype ssrfun seq.
 From fcsl
 Require Import pred.
-Set Implicit Arguments.
-Unset Strict Implicit.
-Unset Printing Implicit Defensive.
+From scilla
+Require Import options.
 
 (* A semantics of contracts with decidable deterministic transitions *)
 
