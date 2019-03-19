@@ -1,16 +1,12 @@
-From mathcomp.ssreflect
-Require Import ssreflect ssrbool ssrnat eqtype ssrfun seq.
 From mathcomp
-Require Import path.
-Require Import Eqdep.
-From Heaps
-Require Import pred prelude idynamic ordtype pcm finmap unionmap heap coding. 
-From Contracts
+Require Import ssreflect ssrbool ssrnat eqtype ssrfun seq.
+From fcsl
+Require Import pred.
+From scilla
 Require Import Automata2.
+From scilla
+Require Import options.
 
-Set Implicit Arguments.
-Unset Strict Implicit.
-Unset Printing Implicit Defensive.
 
 Section Crowdfunding.
 (* Encoding of the Crowdfunding contract from the Scilla whitepaper *)
@@ -307,27 +303,27 @@ rewrite /= /apply_prot; case/orP: M; [|case/orP]=>/eqP M; rewrite M/=.
 
 (* Donate transition *)
 rewrite /donate_fun M eqxx.
-case: ifP=>/=_; [move/Hi=>{Hi}Hi|].
+case: ifP=>/=_; [move=> {}/Hi Hi|].
 - by rewrite subn0; apply: (leq_trans Hi (leq_addr (val m) bal)).
-case: ifP=>/=_; move/Hi=>{Hi}Hi; last first.
+case: ifP=>/=_; move=> {}/Hi Hi; last first.
 - by rewrite subn0; apply: (leq_trans Hi (leq_addr (val m) bal)).
 by rewrite subn0 /balance_backed/= in Hi *; rewrite addnC leq_add2r.
 
 (* Get funds transition. *)
 rewrite /getfunds_fun M eqxx.
-case: ifP=>//=_; case:ifP=>//=_;[|move/Hi=>{Hi}Hi]; last first.
+case: ifP=>//=_; case:ifP=>//=_;[|move=> {}/Hi Hi]; last first.
 - by rewrite subn0; apply: (leq_trans Hi (leq_addr (val m) bal)).
-case: ifP=>//=_; move/Hi=>{Hi}Hi.
+case: ifP=>//=_; move=> {}/Hi Hi.
 by rewrite subn0; apply: (leq_trans Hi (leq_addr (val m) bal)).
 
 (* Claim funds back *)
 rewrite /claim_fun M eqxx.
-case: ifP=>//=_; [move/Hi=>{Hi}Hi|].
+case: ifP=>//=_; [move=> {}/Hi Hi|].
 - by rewrite subn0; apply: (leq_trans Hi (leq_addr (val m) bal)).
 case: ifP=>//=X.
 - case/orP: X; first by rewrite /balance_backed/==>->.
   by move=>_/Hi Z; rewrite subn0; apply: (leq_trans Z (leq_addr (val m) bal)).
-case: ifP=>//=G/=; move/Hi=>/={Hi}Hi.
+case: ifP=>//=G/=; move=> {}/Hi /= Hi.
 rewrite addnC.
 have H1: nth 0 [seq i.2 | i <- backers s]
              (seq.find [pred e | e.1 == sender m] (backers s)) <=
@@ -389,7 +385,7 @@ Proof.
 elim=>[|[bc m] sc Hi]st st' P R; first by rewrite /reachable'=>/=Z; subst st'.
 rewrite /reachable'/==>E. 
 apply: (Hi (post (step_prot crowd_prot st bc m))); last 2 first; clear Hi.
-- by move=>q; move:(R q)=>{R}R G; apply: R; apply/In_cons; right.
+- by move=>q; move:(R q)=>{R}-R G; apply: R; apply/In_cons; right.
 - rewrite E; set st1 := (step_prot crowd_prot st bc m); clear E R P.
   by case: sc st1=>//=[[bc' m']] sc st1/=.   
 clear E.

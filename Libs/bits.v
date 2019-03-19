@@ -1,5 +1,9 @@
-From mathcomp.ssreflect
-Require Import ssreflect ssrbool ssrnat eqtype ssrfun seq tuple div.
+From Coq
+Require Import Recdef.
+From mathcomp
+Require Import ssreflect ssrbool ssrnat eqtype seq tuple div.
+From scilla
+Require Import options.
 
 Definition BITS n := n.-tuple bool.
 Definition NIBBLE := BITS 4.
@@ -10,7 +14,6 @@ Definition QWORD := BITS 64.
 Definition DWORDorBYTE (d: bool) :=
   BITS (if d then 32 else 8).
 
-Require Import Recdef.
 
 Function natToBits' (n : nat) (acc : seq bool) {measure id n} : seq bool :=
   if n is 0 then acc 

@@ -1,12 +1,9 @@
-From mathcomp.ssreflect
+From mathcomp
 Require Import ssreflect ssrbool ssrnat eqtype ssrfun seq.
-From mathcomp Require Import path.
-Require Import Eqdep.
-From Heaps
-Require Import pred prelude idynamic ordtype pcm finmap unionmap heap coding.
-Set Implicit Arguments.
-Unset Strict Implicit.
-Unset Printing Implicit Defensive.
+From fcsl
+Require Import pred.
+From scilla
+Require Import options.
 
 (* A semantics of contracts with decidable deterministic transitions *)
 
@@ -170,7 +167,7 @@ rewrite leq_eqVlt; case/orP; first by move/eqP.
 rewrite -has_find=>G. suff X: False by [].
 rewrite /tags in M; clear s bal id bc.
 elim: (transitions p) G M=>//t ts Hi/=.
-case/orP; last by move/Hi=>{Hi} Hi H; apply: Hi; rewrite inE in H; case/norP: H.
+case/orP; last by move=> {}/Hi Hi H; apply: Hi; rewrite inE in H; case/norP: H.
 by move/eqP=>->; rewrite inE eqxx.
 Qed.
 

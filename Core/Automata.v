@@ -1,13 +1,9 @@
-From mathcomp.ssreflect
-Require Import ssreflect ssrbool ssrnat eqtype ssrfun seq.
 From mathcomp
-Require Import path.
-Require Import Eqdep.
-From Heaps
-Require Import pred prelude idynamic ordtype pcm finmap unionmap heap coding. 
-Set Implicit Arguments.
-Unset Strict Implicit.
-Unset Printing Implicit Defensive.
+Require Import ssreflect ssrbool ssrnat ssrfun seq.
+From fcsl
+Require Import pred.
+From scilla
+Require Import options.
 
 (*
 

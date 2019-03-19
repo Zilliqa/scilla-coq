@@ -1,16 +1,9 @@
-From mathcomp.ssreflect
-Require Import ssreflect ssrbool ssrnat eqtype ssrfun seq.
 From mathcomp
-Require Import path.
-Require Import Eqdep.
-From Heaps
-Require Import pred prelude idynamic ordtype pcm finmap unionmap heap coding. 
-From Contracts
+Require Import ssreflect ssrbool ssrnat eqtype seq.
+From scilla
 Require Import Automata.
-
-Set Implicit Arguments.
-Unset Strict Implicit.
-Unset Printing Implicit Defensive.
+From scilla
+Require Import options.
 
 (**
 An encoding of the Puzzle contract from Luu et al.
@@ -69,6 +62,7 @@ Variable init_sender : nat.
 Variable init_reward : nat.
 
 (* Inital state after the constructor execution *)
+Set Warnings "-abstract-large-number".
 Definition s0 := PS init_sender false init_reward (bytes32 11111) None.
 
 (* Transition 1 -- changing the reward *)
