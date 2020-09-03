@@ -56,7 +56,7 @@ transition GetFunds
   if (tag == "getfunds") && (sender == owner) =>
   blk <- && block_number;
   bal <- & balance;
-  if max_block >= blk
+  if max_block < blk
   then if goal <= bal
        then funded := true;
             send (<to -> owner, amount -> bal,
